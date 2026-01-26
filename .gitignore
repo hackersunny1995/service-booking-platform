@@ -1,0 +1,43 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+
+# Backend (Java/Spring Boot)
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/*.iml
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Frontend (Flutter)
+user-app/.dart_tool/
+user-app/.packages
+user-app/pubspec.lock
+user-app/.flutter-plugins
+user-app/.flutter-plugins-dependencies
+user-app/build/
+user-app/.metadata
+
+# Sensitive files
+**/application-secrets.properties
+*.secret
+.env.production

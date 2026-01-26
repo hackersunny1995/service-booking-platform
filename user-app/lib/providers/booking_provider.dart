@@ -14,7 +14,7 @@ class BookingProvider with ChangeNotifier {
 
   // Booking flow state
   int _currentStep = 0;
-  Service? _selectedService;
+  ServiceModel? _selectedService;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _customerAddress;
@@ -38,7 +38,7 @@ class BookingProvider with ChangeNotifier {
 
   // Getters
   int get currentStep => _currentStep;
-  Service? get selectedService => _selectedService;
+  ServiceModel? get selectedService => _selectedService;
   DateTime? get selectedDate => _selectedDate;
   TimeOfDay? get selectedTime => _selectedTime;
   String? get customerAddress => _customerAddress;
@@ -55,7 +55,7 @@ class BookingProvider with ChangeNotifier {
   bool get isLoadingBookings => _isLoadingBookings;
 
   // Initialize booking flow with service
-  void initializeBooking(Service service) {
+  void initializeBooking(ServiceModel service) {
     _selectedService = service;
     _currentStep = 0;
     _selectedDate = null;

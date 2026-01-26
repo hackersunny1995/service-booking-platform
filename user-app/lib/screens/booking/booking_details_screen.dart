@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/booking_provider.dart';
 import '../../models/booking.dart';
+import '../../models/booking_enums.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   final Booking booking;

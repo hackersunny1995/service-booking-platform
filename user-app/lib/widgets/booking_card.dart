@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/booking.dart';
+import '../models/booking_enums.dart';
 
 class BookingCard extends StatelessWidget {
   final Booking booking;

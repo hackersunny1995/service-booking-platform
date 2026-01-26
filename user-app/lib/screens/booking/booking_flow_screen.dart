@@ -9,7 +9,7 @@ import 'steps/confirmation_step.dart';
 import '../../widgets/step_indicator.dart';
 
 class BookingFlowScreen extends StatefulWidget {
-  final Service service;
+  final ServiceModel service;
 
   const BookingFlowScreen({
     super.key,

@@ -25,4 +25,12 @@ public interface ProviderProfileRepository extends JpaRepository<ProviderProfile
            "cos(radians(p.longitude) - radians(:lng)) + sin(radians(:lat)) * " +
            "sin(radians(p.latitude)))) <= p.serviceRadiusKm")
     List<ProviderProfile> findNearbyProviders(@Param("lat") Double latitude, @Param("lng") Double longitude);
+
+    @Query("SELECT DISTINCT p FROM ProviderProfile p " +
+           "JOIN ProviderService ps ON ps.provider.id = p.id " +
+           "WHERE ps.service.id = :serviceId " +
+           "AND ps.isActive = true " +
+           "AND p.isAvailable = true " +
+           "AND p.isApproved = true")
+    List<ProviderProfile> findByServiceId(@Param("serviceId") Long serviceId);
 }

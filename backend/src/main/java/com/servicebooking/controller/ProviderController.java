@@ -45,6 +45,12 @@ public class ProviderController {
         return ResponseEntity.ok(providerService.getNearbyProviders(latitude, longitude));
     }
 
+    @GetMapping("/service/{serviceId}")
+    @Operation(summary = "Get providers by service ID")
+    public ResponseEntity<List<ProviderProfile>> getProvidersByService(@PathVariable Long serviceId) {
+        return ResponseEntity.ok(providerService.getProvidersByService(serviceId));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get provider by ID")
     public ResponseEntity<ProviderProfile> getProviderById(@PathVariable Long id) {

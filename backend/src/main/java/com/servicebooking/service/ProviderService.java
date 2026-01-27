@@ -32,6 +32,10 @@ public class ProviderService {
         return providerProfileRepository.findNearbyProviders(latitude, longitude);
     }
 
+    public List<ProviderProfile> getProvidersByService(Long serviceId) {
+        return providerProfileRepository.findByServiceId(serviceId);
+    }
+
     public ProviderProfile getProviderById(Long id) {
         return providerProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found with id: " + id));

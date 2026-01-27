@@ -226,11 +226,7 @@ class _BookingSuccessScreenState extends State<BookingSuccessScreen>
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/my-bookings',
-                            (route) => route.isFirst,
-                          );
+                          Navigator.of(context).pushReplacementNamed('/my-bookings');
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -252,11 +248,8 @@ class _BookingSuccessScreenState extends State<BookingSuccessScreen>
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/home',
-                            (route) => false,
-                          );
+                          // Pop all routes until we reach the home screen
+                          Navigator.of(context).popUntil((route) => route.isFirst);
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),

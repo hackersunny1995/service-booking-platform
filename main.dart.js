@@ -29029,7 +29029,7 @@ switch(s){case 1:return new A.CW(a.message)
 case 2:return new A.w6(a.message)
 case 3:return new A.Ff(a.message,null)
 default:return new A.mh(J.cN(s),a.message,null,null)}},
-aRt(){return"https://homeprime99-backend.onrender.com/api"},
+aRt(){return"https://service-booking-platform-hpb7.onrender.com/api"},
 b2X(a,b,c){var s,r,q,p
 try{q=c.$0()
 return q}catch(p){q=A.aa(p)

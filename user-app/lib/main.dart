@@ -5,6 +5,8 @@ import 'providers/auth_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/booking_provider.dart';
 import 'screens/splash_screen.dart';
+import 'screens/booking/booking_success_screen.dart';
+import 'models/booking.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,6 +28,12 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const SplashScreen(),
+        routes: {
+          '/booking-success': (context) {
+            final booking = ModalRoute.of(context)?.settings.arguments as Booking;
+            return BookingSuccessScreen(booking: booking);
+          },
+        },
       ),
     );
   }

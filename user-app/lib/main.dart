@@ -6,6 +6,8 @@ import 'providers/service_provider.dart';
 import 'providers/booking_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/booking/booking_success_screen.dart';
+import 'screens/booking/my_bookings_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'models/booking.dart';
 
 void main() {
@@ -33,6 +35,8 @@ class MyApp extends StatelessWidget {
             final booking = ModalRoute.of(context)?.settings.arguments as Booking;
             return BookingSuccessScreen(booking: booking);
           },
+          '/my-bookings': (context) => const MyBookingsScreen(),
+          '/home': (context) => const HomeScreen(),
         },
       ),
     );

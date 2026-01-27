@@ -8,8 +8,8 @@ class ApiConfig {
   // Physical Device: http://YOUR_IP_ADDRESS:8080/api
   static String get baseUrl {
     if (kIsWeb) {
-      // PRODUCTION: Update this URL after deploying backend to Render
-      return 'https://homeprime99-backend.onrender.com/api';
+      // PRODUCTION: Render backend URL
+      return 'https://service-booking-platform-hpb7.onrender.com/api';
     }
     return 'http://10.0.2.2:8080/api'; // Android emulator
   }

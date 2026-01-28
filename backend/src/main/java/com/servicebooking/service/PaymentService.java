@@ -1,5 +1,8 @@
 package com.servicebooking.service;
 
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
 import com.servicebooking.dto.PaymentRequest;
 import com.servicebooking.exception.BadRequestException;
 import com.servicebooking.exception.ResourceNotFoundException;
@@ -9,6 +12,7 @@ import com.servicebooking.model.PaymentStatus;
 import com.servicebooking.repository.BookingRepository;
 import com.servicebooking.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +33,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final NotificationService notificationService;
+
+    @Value("${razorpay.key.id}")
+    private String razorpayKeyId;
 
     @Value("${razorpay.key.secret}")
     private String razorpayKeySecret;
@@ -51,14 +58,38 @@ public class PaymentService {
             throw new BadRequestException("Booking is already paid");
         }
 
+        // Create Razorpay order
+        String razorpayOrderId = createRazorpayOrder(request.getAmount());
+
         Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setAmount(request.getAmount());
         payment.setPaymentMethod(request.getPaymentMethod());
         payment.setTransactionId(generateTransactionId());
+        payment.setRazorpayOrderId(razorpayOrderId);
         payment.setStatus(PaymentStatus.PENDING);
 
         return paymentRepository.save(payment);
+    }
+
+    private String createRazorpayOrder(java.math.BigDecimal amount) {
+        try {
+            RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+
+            // Convert amount to paise (Razorpay uses smallest currency unit)
+            int amountInPaise = amount.multiply(java.math.BigDecimal.valueOf(100)).intValue();
+
+            JSONObject orderRequest = new JSONObject();
+            orderRequest.put("amount", amountInPaise);
+            orderRequest.put("currency", "INR");
+            orderRequest.put("receipt", generateTransactionId());
+
+            Order order = razorpayClient.orders.create(orderRequest);
+            return order.get("id");
+
+        } catch (RazorpayException e) {
+            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage());
+        }
     }
 
     @Transactional

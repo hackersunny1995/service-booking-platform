@@ -34,6 +34,8 @@ public class Payment {
 
     private String transactionId;
 
+    private String razorpayOrderId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus status = PaymentStatus.PENDING;

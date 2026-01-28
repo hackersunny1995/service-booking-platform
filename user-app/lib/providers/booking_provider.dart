@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../models/booking.dart';
 import '../models/booking_request.dart';
 import '../models/provider.dart' as provider_model;
@@ -9,14 +9,14 @@ import '../models/payment.dart';
 import '../services/booking_service.dart';
 import '../services/provider_service.dart';
 import '../services/location_service.dart';
-import '../services/payment_service.dart';
+import '../services/payment_service_web.dart';
 import 'auth_provider.dart';
 
 class BookingProvider with ChangeNotifier {
   final BookingService _bookingService = BookingService();
   final ProviderService _providerService = ProviderService();
   final LocationService _locationService = LocationService();
-  final PaymentService _paymentService = PaymentService();
+  final PaymentServiceWeb _paymentService = PaymentServiceWeb();
 
   Payment? _paymentOrder;
   bool _isProcessingPayment = false;
@@ -393,20 +393,12 @@ class BookingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Initialize Razorpay payment
+  // Initialize Razorpay payment (No-op for web, kept for compatibility)
   void initializePayment(BuildContext context) {
-    _paymentService.initializeRazorpay(
-      onSuccess: (PaymentSuccessResponse response) {
-        _handlePaymentSuccess(context, response);
-      },
-      onFailure: (PaymentFailureResponse response) {
-        _handlePaymentFailure(context, response);
-      },
-      onWalletSelection: () {
-        // Handle external wallet selection if needed
-        print('External wallet selected');
-      },
-    );
+    // Web doesn't need initialization, payment is handled per-transaction
+    if (kIsWeb) {
+      print('Web payment initialized');
+    }
   }
 
   // Initiate payment after booking
@@ -433,7 +425,10 @@ class BookingProvider with ChangeNotifier {
         amount: _createdBooking!.totalAmount,
       );
 
-      // Open Razorpay checkout
+      _isProcessingPayment = false;
+      notifyListeners();
+
+      // Open Razorpay checkout with callbacks
       _paymentService.openCheckout(
         amount: _createdBooking!.totalAmount,
         orderId: _paymentOrder!.transactionId ?? '',
@@ -441,10 +436,13 @@ class BookingProvider with ChangeNotifier {
         email: userEmail,
         phone: '', // Phone not available in AuthResponse
         description: 'Payment for ${_createdBooking!.serviceName}',
+        onSuccess: (response) {
+          _handlePaymentSuccessWeb(context, response);
+        },
+        onFailure: (error) {
+          _handlePaymentFailureWeb(context, error);
+        },
       );
-
-      _isProcessingPayment = false;
-      notifyListeners();
     } catch (e) {
       _paymentError = e.toString().replaceAll('Exception: ', '');
       _isProcessingPayment = false;
@@ -509,6 +507,63 @@ class BookingProvider with ChangeNotifier {
     }
   }
 
+  // Handle payment success (Web version)
+  Future<void> _handlePaymentSuccessWeb(
+    BuildContext context,
+    Map<String, dynamic> response,
+  ) async {
+    if (_createdBooking == null || _paymentOrder == null) return;
+
+    _isProcessingPayment = true;
+    notifyListeners();
+
+    try {
+      // Verify payment on backend
+      final verifiedPayment = await _paymentService.verifyPayment(
+        bookingId: _createdBooking!.id,
+        amount: _createdBooking!.totalAmount,
+        razorpayOrderId: response['razorpay_order_id'] ?? '',
+        razorpayPaymentId: response['razorpay_payment_id'] ?? '',
+        razorpaySignature: response['razorpay_signature'] ?? '',
+      );
+
+      _isProcessingPayment = false;
+      notifyListeners();
+
+      // Navigate to success screen
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/booking-success',
+          arguments: _createdBooking,
+        );
+      }
+    } catch (e) {
+      _paymentError = e.toString().replaceAll('Exception: ', '');
+      _isProcessingPayment = false;
+      notifyListeners();
+
+      // Show error dialog
+      if (context.mounted) {
+        _showPaymentErrorDialog(context, _paymentError!);
+      }
+    }
+  }
+
+  // Handle payment failure (Web version)
+  void _handlePaymentFailureWeb(
+    BuildContext context,
+    Map<String, dynamic> error,
+  ) {
+    _isProcessingPayment = false;
+    _paymentError = error['description'] ?? 'Payment failed';
+    notifyListeners();
+
+    if (context.mounted) {
+      _showPaymentErrorDialog(context, _paymentError!);
+    }
+  }
+
   // Show payment error dialog
   void _showPaymentErrorDialog(BuildContext context, String error) {
     showDialog(
@@ -528,8 +583,8 @@ class BookingProvider with ChangeNotifier {
     );
   }
 
-  // Dispose payment service
+  // Dispose payment service (No-op for web)
   void disposePayment() {
-    _paymentService.dispose();
+    // Web version doesn't need disposal
   }
 }

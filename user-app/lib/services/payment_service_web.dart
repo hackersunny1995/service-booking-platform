@@ -1,4 +1,5 @@
-import 'dart:js' as js;
+import 'dart:html' as html;
+import 'dart:js_util' as js_util;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/payment.dart';
 import '../models/payment_request.dart';
@@ -48,69 +49,112 @@ class PaymentServiceWeb {
     required Function(Map<String, dynamic>) onFailure,
   }) {
     if (!kIsWeb) {
-      throw Exception('This payment method is only available on web');
+      onFailure({
+        'code': 'PLATFORM_ERROR',
+        'description': 'Payment is only available on web platform',
+      });
+      return;
     }
 
-    // Create options object for Razorpay
-    final options = js.JsObject.jsify({
-      'key': 'rzp_test_1DP5mmOlF5G5ag',
-      'amount': (amount * 100).toInt(), // Amount in paise
-      'currency': 'INR',
-      'name': 'Homeprime99',
-      'description': description,
-      'order_id': orderId,
-      'prefill': {
-        'contact': phone,
-        'email': email,
-        'name': name,
-      },
-      'theme': {
-        'color': '#FF6B35',
-      },
-      'handler': js.allowInterop((response) {
-        // Payment success callback
-        final responseMap = {
-          'razorpay_payment_id': response['razorpay_payment_id'],
-          'razorpay_order_id': response['razorpay_order_id'],
-          'razorpay_signature': response['razorpay_signature'],
-        };
-        onSuccess(responseMap);
-      }),
-      'modal': js.JsObject.jsify({
-        'ondismiss': js.allowInterop(() {
-          // Payment dismissed/cancelled
-          onFailure({
-            'code': 'PAYMENT_CANCELLED',
-            'description': 'Payment was cancelled by user',
-          });
-        }),
-      }),
-    });
-
     try {
-      // Create Razorpay instance
-      final razorpay = js.JsObject(js.context['Razorpay'], [options]);
+      // Check if Razorpay is loaded
+      if (js_util.hasProperty(html.window, 'Razorpay') == false) {
+        print('ERROR: Razorpay SDK not loaded');
+        onFailure({
+          'code': 'SDK_NOT_LOADED',
+          'description': 'Razorpay SDK is not loaded. Please refresh the page.',
+        });
+        return;
+      }
 
-      // Add error handler
-      razorpay['on'] = js.allowInterop((String event, Function callback) {
-        if (event == 'payment.failed') {
-          return js.allowInterop((response) {
-            final errorMap = {
-              'code': response['error']['code'] ?? 'PAYMENT_FAILED',
-              'description': response['error']['description'] ?? 'Payment failed',
-              'source': response['error']['source'] ?? 'unknown',
-              'step': response['error']['step'] ?? 'unknown',
-              'reason': response['error']['reason'] ?? 'unknown',
-            };
-            onFailure(errorMap);
-          });
-        }
+      print('Razorpay SDK is loaded');
+      print('Opening checkout with amount: $amount, orderId: $orderId');
+
+      // Create options object
+      final options = js_util.jsify({
+        'key': 'rzp_test_1DP5mmOlF5G5ag',
+        'amount': (amount * 100).toInt(), // Amount in paise
+        'currency': 'INR',
+        'name': 'Homeprime99',
+        'description': description,
+        'order_id': orderId,
+        'prefill': {
+          'contact': phone,
+          'email': email,
+          'name': name,
+        },
+        'theme': {
+          'color': '#FF6B35',
+        },
+        'handler': js_util.allowInterop((response) {
+          print('Payment success: $response');
+          try {
+            final paymentId = js_util.getProperty(response, 'razorpay_payment_id');
+            final razorpayOrderId = js_util.getProperty(response, 'razorpay_order_id');
+            final signature = js_util.getProperty(response, 'razorpay_signature');
+
+            onSuccess({
+              'razorpay_payment_id': paymentId,
+              'razorpay_order_id': razorpayOrderId,
+              'razorpay_signature': signature,
+            });
+          } catch (e) {
+            print('Error processing payment response: $e');
+            onFailure({
+              'code': 'PROCESSING_ERROR',
+              'description': 'Error processing payment: $e',
+            });
+          }
+        }),
+        'modal': {
+          'ondismiss': js_util.allowInterop(() {
+            print('Payment dismissed by user');
+            onFailure({
+              'code': 'PAYMENT_CANCELLED',
+              'description': 'Payment was cancelled by user',
+            });
+          }),
+        },
       });
 
+      // Get Razorpay constructor
+      final razorpayConstructor = js_util.getProperty(html.window, 'Razorpay');
+
+      // Create Razorpay instance
+      final razorpay = js_util.callConstructor(razorpayConstructor, [options]);
+
+      // Set up error handler
+      js_util.callMethod(razorpay, 'on', [
+        'payment.failed',
+        js_util.allowInterop((response) {
+          print('Payment failed: $response');
+          try {
+            final error = js_util.getProperty(response, 'error');
+            final code = js_util.getProperty(error, 'code') ?? 'PAYMENT_FAILED';
+            final description = js_util.getProperty(error, 'description') ?? 'Payment failed';
+
+            onFailure({
+              'code': code,
+              'description': description,
+            });
+          } catch (e) {
+            print('Error processing payment failure: $e');
+            onFailure({
+              'code': 'PAYMENT_FAILED',
+              'description': 'Payment failed. Please try again.',
+            });
+          }
+        }),
+      ]);
+
       // Open Razorpay checkout
-      razorpay.callMethod('open');
-    } catch (e) {
+      print('Calling razorpay.open()...');
+      js_util.callMethod(razorpay, 'open', []);
+      print('Razorpay checkout opened');
+
+    } catch (e, stackTrace) {
       print('Error opening Razorpay: $e');
+      print('Stack trace: $stackTrace');
       onFailure({
         'code': 'INTEGRATION_ERROR',
         'description': 'Failed to open payment gateway: $e',

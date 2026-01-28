@@ -450,63 +450,6 @@ class BookingProvider with ChangeNotifier {
     }
   }
 
-  // Handle payment success
-  Future<void> _handlePaymentSuccess(
-    BuildContext context,
-    PaymentSuccessResponse response,
-  ) async {
-    if (_createdBooking == null || _paymentOrder == null) return;
-
-    _isProcessingPayment = true;
-    notifyListeners();
-
-    try {
-      // Verify payment on backend
-      final verifiedPayment = await _paymentService.verifyPayment(
-        bookingId: _createdBooking!.id,
-        amount: _createdBooking!.totalAmount,
-        razorpayOrderId: _paymentOrder!.transactionId ?? '',
-        razorpayPaymentId: response.paymentId ?? '',
-        razorpaySignature: response.signature ?? '',
-      );
-
-      _isProcessingPayment = false;
-      notifyListeners();
-
-      // Navigate to success screen
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          '/booking-success',
-          arguments: _createdBooking,
-        );
-      }
-    } catch (e) {
-      _paymentError = e.toString().replaceAll('Exception: ', '');
-      _isProcessingPayment = false;
-      notifyListeners();
-
-      // Show error dialog
-      if (context.mounted) {
-        _showPaymentErrorDialog(context, _paymentError!);
-      }
-    }
-  }
-
-  // Handle payment failure
-  void _handlePaymentFailure(
-    BuildContext context,
-    PaymentFailureResponse response,
-  ) {
-    _isProcessingPayment = false;
-    _paymentError = response.message ?? 'Payment failed';
-    notifyListeners();
-
-    if (context.mounted) {
-      _showPaymentErrorDialog(context, _paymentError!);
-    }
-  }
-
   // Handle payment success (Web version)
   Future<void> _handlePaymentSuccessWeb(
     BuildContext context,

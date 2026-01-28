@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../models/booking.dart';
 import '../models/booking_request.dart';
-import '../models/provider.dart';
+import '../models/provider.dart' as provider_model;
 import '../models/service.dart';
 import '../models/payment.dart';
 import '../services/booking_service.dart';
 import '../services/provider_service.dart';
 import '../services/location_service.dart';
 import '../services/payment_service.dart';
+import 'auth_provider.dart';
 
 class BookingProvider with ChangeNotifier {
   final BookingService _bookingService = BookingService();
@@ -28,11 +30,11 @@ class BookingProvider with ChangeNotifier {
   String? _customerAddress;
   double? _customerLatitude;
   double? _customerLongitude;
-  Provider? _selectedProvider;
+  provider_model.Provider? _selectedProvider;
   String? _notes;
 
   // Providers list
-  List<Provider> _availableProviders = [];
+  List<provider_model.Provider> _availableProviders = [];
   bool _isLoadingProviders = false;
 
   // Booking state
@@ -52,9 +54,9 @@ class BookingProvider with ChangeNotifier {
   String? get customerAddress => _customerAddress;
   double? get customerLatitude => _customerLatitude;
   double? get customerLongitude => _customerLongitude;
-  Provider? get selectedProvider => _selectedProvider;
+  provider_model.Provider? get selectedProvider => _selectedProvider;
   String? get notes => _notes;
-  List<Provider> get availableProviders => _availableProviders;
+  List<provider_model.Provider> get availableProviders => _availableProviders;
   bool get isLoadingProviders => _isLoadingProviders;
   bool get isCreatingBooking => _isCreatingBooking;
   Booking? get createdBooking => _createdBooking;
@@ -165,7 +167,7 @@ class BookingProvider with ChangeNotifier {
   }
 
   // Set selected provider
-  void setSelectedProvider(Provider provider) {
+  void setSelectedProvider(provider_model.Provider provider) {
     _selectedProvider = provider;
     notifyListeners();
   }
@@ -420,6 +422,11 @@ class BookingProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Get user data from AuthProvider
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userName = authProvider.user?.fullName ?? 'Customer';
+      final userEmail = authProvider.authResponse?.email ?? '';
+
       // Create payment order on backend
       _paymentOrder = await _paymentService.createPaymentOrder(
         bookingId: _createdBooking!.id,
@@ -430,9 +437,9 @@ class BookingProvider with ChangeNotifier {
       _paymentService.openCheckout(
         amount: _createdBooking!.totalAmount,
         orderId: _paymentOrder!.transactionId ?? '',
-        name: _createdBooking!.customerName,
-        email: '', // TODO: Get from auth provider
-        phone: _createdBooking!.customer.phone,
+        name: userName,
+        email: userEmail,
+        phone: '', // Phone not available in AuthResponse
         description: 'Payment for ${_createdBooking!.serviceName}',
       );
 

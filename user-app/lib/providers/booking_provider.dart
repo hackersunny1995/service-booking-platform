@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../models/booking.dart';
 import '../models/booking_request.dart';
 import '../models/provider.dart';
 import '../models/service.dart';
+import '../models/payment.dart';
 import '../services/booking_service.dart';
 import '../services/provider_service.dart';
 import '../services/location_service.dart';
+import '../services/payment_service.dart';
 
 class BookingProvider with ChangeNotifier {
   final BookingService _bookingService = BookingService();
   final ProviderService _providerService = ProviderService();
   final LocationService _locationService = LocationService();
+  final PaymentService _paymentService = PaymentService();
+
+  Payment? _paymentOrder;
+  bool _isProcessingPayment = false;
+  String? _paymentError;
 
   // Booking flow state
   int _currentStep = 0;
@@ -53,6 +61,9 @@ class BookingProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<Booking> get myBookings => _myBookings;
   bool get isLoadingBookings => _isLoadingBookings;
+  Payment? get paymentOrder => _paymentOrder;
+  bool get isProcessingPayment => _isProcessingPayment;
+  String? get paymentError => _paymentError;
 
   // Initialize booking flow with service
   void initializeBooking(ServiceModel service) {
@@ -378,5 +389,140 @@ class BookingProvider with ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // Initialize Razorpay payment
+  void initializePayment(BuildContext context) {
+    _paymentService.initializeRazorpay(
+      onSuccess: (PaymentSuccessResponse response) {
+        _handlePaymentSuccess(context, response);
+      },
+      onFailure: (PaymentFailureResponse response) {
+        _handlePaymentFailure(context, response);
+      },
+      onWalletSelection: () {
+        // Handle external wallet selection if needed
+        print('External wallet selected');
+      },
+    );
+  }
+
+  // Initiate payment after booking
+  Future<void> initiatePayment(BuildContext context) async {
+    if (_createdBooking == null) {
+      _paymentError = 'Booking not created yet';
+      notifyListeners();
+      return;
+    }
+
+    _isProcessingPayment = true;
+    _paymentError = null;
+    notifyListeners();
+
+    try {
+      // Create payment order on backend
+      _paymentOrder = await _paymentService.createPaymentOrder(
+        bookingId: _createdBooking!.id,
+        amount: _createdBooking!.totalAmount,
+      );
+
+      // Open Razorpay checkout
+      _paymentService.openCheckout(
+        amount: _createdBooking!.totalAmount,
+        orderId: _paymentOrder!.transactionId ?? '',
+        name: _createdBooking!.customerName,
+        email: '', // TODO: Get from auth provider
+        phone: _createdBooking!.customer.phone,
+        description: 'Payment for ${_createdBooking!.serviceName}',
+      );
+
+      _isProcessingPayment = false;
+      notifyListeners();
+    } catch (e) {
+      _paymentError = e.toString().replaceAll('Exception: ', '');
+      _isProcessingPayment = false;
+      notifyListeners();
+    }
+  }
+
+  // Handle payment success
+  Future<void> _handlePaymentSuccess(
+    BuildContext context,
+    PaymentSuccessResponse response,
+  ) async {
+    if (_createdBooking == null || _paymentOrder == null) return;
+
+    _isProcessingPayment = true;
+    notifyListeners();
+
+    try {
+      // Verify payment on backend
+      final verifiedPayment = await _paymentService.verifyPayment(
+        bookingId: _createdBooking!.id,
+        amount: _createdBooking!.totalAmount,
+        razorpayOrderId: _paymentOrder!.transactionId ?? '',
+        razorpayPaymentId: response.paymentId ?? '',
+        razorpaySignature: response.signature ?? '',
+      );
+
+      _isProcessingPayment = false;
+      notifyListeners();
+
+      // Navigate to success screen
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/booking-success',
+          arguments: _createdBooking,
+        );
+      }
+    } catch (e) {
+      _paymentError = e.toString().replaceAll('Exception: ', '');
+      _isProcessingPayment = false;
+      notifyListeners();
+
+      // Show error dialog
+      if (context.mounted) {
+        _showPaymentErrorDialog(context, _paymentError!);
+      }
+    }
+  }
+
+  // Handle payment failure
+  void _handlePaymentFailure(
+    BuildContext context,
+    PaymentFailureResponse response,
+  ) {
+    _isProcessingPayment = false;
+    _paymentError = response.message ?? 'Payment failed';
+    notifyListeners();
+
+    if (context.mounted) {
+      _showPaymentErrorDialog(context, _paymentError!);
+    }
+  }
+
+  // Show payment error dialog
+  void _showPaymentErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Payment Failed'),
+        content: Text(error),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Dispose payment service
+  void disposePayment() {
+    _paymentService.dispose();
   }
 }

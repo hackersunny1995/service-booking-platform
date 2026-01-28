@@ -28,8 +28,10 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
     super.initState();
     // Initialize booking flow with selected service
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<BookingProvider>(context, listen: false)
-          .initializeBooking(widget.service);
+      final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
+      bookingProvider.initializeBooking(widget.service);
+      // Initialize Razorpay payment
+      bookingProvider.initializePayment(context);
     });
   }
 
@@ -200,14 +202,27 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
     final success = await bookingProvider.createBooking();
 
     if (success && mounted) {
-      // Navigate to success screen
-      Navigator.pushReplacementNamed(
-        context,
-        '/booking-success',
-        arguments: bookingProvider.createdBooking,
-      );
+      // Initiate payment
+      await bookingProvider.initiatePayment(context);
+
+      // Check for payment errors
+      if (bookingProvider.paymentError != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(bookingProvider.paymentError!),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () {
+                bookingProvider.initiatePayment(context);
+              },
+            ),
+          ),
+        );
+      }
     } else if (mounted) {
-      // Show error
+      // Show booking creation error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

@@ -84,4 +84,26 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     return await _storageService.isLoggedIn();
   }
+
+  // Get saved auth data
+  Future<AuthResponse?> getSavedAuthData() async {
+    final token = await _storageService.getToken();
+    final userId = await _storageService.getUserId();
+    final email = await _storageService.getUserEmail();
+    final fullName = await _storageService.getUserName();
+    final role = await _storageService.getUserRole();
+
+    if (token != null && userId != null && email != null && fullName != null && role != null) {
+      return AuthResponse(
+        accessToken: token,
+        tokenType: 'Bearer',
+        userId: userId,
+        email: email,
+        fullName: fullName,
+        role: role,
+      );
+    }
+
+    return null;
+  }
 }

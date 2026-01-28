@@ -24,6 +24,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Load saved auth data first
+    await authProvider.loadSavedAuthData();
+
+    // Then check if logged in
     final isLoggedIn = await authProvider.checkLoginStatus();
 
     if (!mounted) return;

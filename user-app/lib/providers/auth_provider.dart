@@ -91,6 +91,12 @@ class AuthProvider with ChangeNotifier {
     return await _authService.isLoggedIn();
   }
 
+  // Load saved auth data
+  Future<void> loadSavedAuthData() async {
+    _authResponse = await _authService.getSavedAuthData();
+    notifyListeners();
+  }
+
   // Clear error
   void clearError() {
     _errorMessage = null;

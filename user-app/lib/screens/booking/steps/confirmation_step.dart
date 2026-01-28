@@ -272,6 +272,61 @@ class _ConfirmationStepState extends State<ConfirmationStep> {
 
               const SizedBox(height: 16),
 
+              // Payment Summary
+              _buildSectionCard(
+                title: 'Payment Summary',
+                icon: Icons.payment,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPriceRow(
+                      'Service Charge',
+                      bookingProvider.selectedService?.basePrice ?? 0.0,
+                      isSubtotal: true,
+                    ),
+                    const Divider(height: 24),
+                    _buildPriceRow(
+                      'Total Amount',
+                      bookingProvider.selectedService?.basePrice ?? 0.0,
+                      isTotal: true,
+                      context: context,
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.blue.shade200,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 18,
+                            color: Colors.blue.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'You will be redirected to Razorpay payment gateway after confirmation',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               // Additional notes
               Text(
                 'Additional Notes (Optional)',
@@ -341,7 +396,7 @@ class _ConfirmationStepState extends State<ConfirmationStep> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Please ensure all details are correct before confirming. You can cancel the booking before the provider confirms.',
+                            'Please review all details carefully. After clicking "Confirm Booking", you will be redirected to complete the payment. You can cancel the booking before the provider confirms.',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.orange.shade800,
@@ -400,6 +455,38 @@ class _ConfirmationStepState extends State<ConfirmationStep> {
           child,
         ],
       ),
+    );
+  }
+
+  Widget _buildPriceRow(
+    String label,
+    double amount, {
+    bool isSubtotal = false,
+    bool isTotal = false,
+    BuildContext? context,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: isTotal ? 16 : 14,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            color: isTotal ? Colors.black : Colors.grey.shade700,
+          ),
+        ),
+        Text(
+          '\$${amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: isTotal ? 18 : 14,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+            color: isTotal && context != null
+                ? Theme.of(context).primaryColor
+                : Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -179,7 +179,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                               )
                             : Text(
                                 bookingProvider.currentStep == 3
-                                    ? 'Confirm Booking'
+                                    ? 'Confirm & Pay'
                                     : 'Continue',
                                 style: const TextStyle(
                                   fontSize: 16,

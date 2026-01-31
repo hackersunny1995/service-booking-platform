@@ -74,21 +74,36 @@ public class PaymentService {
 
     private String createRazorpayOrder(java.math.BigDecimal amount) {
         try {
+            System.out.println("Creating Razorpay order with keyId: " + razorpayKeyId);
+            System.out.println("Key secret length: " + (razorpayKeySecret != null ? razorpayKeySecret.length() : "null"));
+            System.out.println("Amount: " + amount);
+
             RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
 
             // Convert amount to paise (Razorpay uses smallest currency unit)
             int amountInPaise = amount.multiply(java.math.BigDecimal.valueOf(100)).intValue();
+            System.out.println("Amount in paise: " + amountInPaise);
 
             JSONObject orderRequest = new JSONObject();
             orderRequest.put("amount", amountInPaise);
             orderRequest.put("currency", "INR");
             orderRequest.put("receipt", generateTransactionId());
 
+            System.out.println("Calling Razorpay API...");
             Order order = razorpayClient.orders.create(orderRequest);
-            return order.get("id");
+            String orderId = order.get("id");
+            System.out.println("Razorpay order created successfully: " + orderId);
+            return orderId;
 
         } catch (RazorpayException e) {
-            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage());
+            System.err.println("Razorpay error: " + e.getMessage());
+            System.err.println("Razorpay error code: " + e.getCode());
+            e.printStackTrace();
+            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage() + " (Code: " + e.getCode() + ")");
+        } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+            throw new BadRequestException("Unexpected error creating payment: " + e.getMessage());
         }
     }
 

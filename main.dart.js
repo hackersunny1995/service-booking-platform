@@ -29197,7 +29197,7 @@ switch(s){case 1:return new A.D4(a.message)
 case 2:return new A.wj(a.message)
 case 3:return new A.Fp(a.message,null)
 default:return new A.ml(J.cz(s),a.message,null,null)}},
-aSb(){return"https://service-booking-platform-hpb7.onrender.com/api"},
+aSb(){return"https://service-booking-platform-production.up.railway.app/api"},
 b3I(a,b,c){var s,r,q,p
 try{q=c.$0()
 return q}catch(p){q=A.a8(p)

@@ -28,7 +28,7 @@ public class ServiceService {
     }
 
     public com.servicebooking.model.Service getServiceById(Long id) {
-        return serviceRepository.findById(id)
+        return serviceRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + id));
     }
 

@@ -74,11 +74,20 @@ public class PaymentService {
 
     private String createRazorpayOrder(java.math.BigDecimal amount) {
         try {
-            System.out.println("Creating Razorpay order with keyId: " + razorpayKeyId);
-            System.out.println("Key secret length: " + (razorpayKeySecret != null ? razorpayKeySecret.length() : "null"));
+            System.out.println("=== RAZORPAY ORDER CREATION DEBUG ===");
+            System.out.println("Key ID: '" + razorpayKeyId + "'");
+            System.out.println("Key ID length: " + (razorpayKeyId != null ? razorpayKeyId.length() : "null"));
+            System.out.println("Key ID trimmed: '" + (razorpayKeyId != null ? razorpayKeyId.trim() : "null") + "'");
+            System.out.println("Key Secret length: " + (razorpayKeySecret != null ? razorpayKeySecret.length() : "null"));
+            System.out.println("Key Secret first 4 chars: " + (razorpayKeySecret != null && razorpayKeySecret.length() >= 4 ? razorpayKeySecret.substring(0, 4) + "..." : "null"));
             System.out.println("Amount: " + amount);
+            System.out.println("======================================");
 
-            RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+            // Trim credentials to remove any whitespace
+            String trimmedKeyId = razorpayKeyId != null ? razorpayKeyId.trim() : null;
+            String trimmedKeySecret = razorpayKeySecret != null ? razorpayKeySecret.trim() : null;
+
+            RazorpayClient razorpayClient = new RazorpayClient(trimmedKeyId, trimmedKeySecret);
 
             // Convert amount to paise (Razorpay uses smallest currency unit)
             int amountInPaise = amount.multiply(java.math.BigDecimal.valueOf(100)).intValue();

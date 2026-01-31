@@ -22,7 +22,7 @@ public class BookingService {
     private final ServiceRepository serviceRepository;
 
     public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+        return bookingRepository.findAllWithRelations();
     }
 
     public List<Booking> getCustomerBookings(Long customerId) {
@@ -38,7 +38,7 @@ public class BookingService {
     }
 
     public Booking getBookingById(Long id) {
-        return bookingRepository.findById(id)
+        return bookingRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
     }
 
@@ -58,7 +58,7 @@ public class BookingService {
             throw new BadRequestException("Invalid provider");
         }
 
-        com.servicebooking.model.Service service = serviceRepository.findById(request.getServiceId())
+        com.servicebooking.model.Service service = serviceRepository.findByIdWithCategory(request.getServiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
 
         Booking booking = new Booking();

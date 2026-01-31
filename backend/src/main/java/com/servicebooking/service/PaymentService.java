@@ -106,9 +106,8 @@ public class PaymentService {
 
         } catch (RazorpayException e) {
             System.err.println("Razorpay error: " + e.getMessage());
-            System.err.println("Razorpay error code: " + e.getCode());
             e.printStackTrace();
-            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage() + " (Code: " + e.getCode() + ")");
+            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Unexpected error: " + e.getMessage());
             e.printStackTrace();

@@ -45,13 +45,13 @@ public class PaymentService {
     }
 
     public Payment getPaymentById(Long id) {
-        return paymentRepository.findById(id)
+        return paymentRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + id));
     }
 
     @Transactional
     public Payment createPayment(PaymentRequest request) {
-        Booking booking = bookingRepository.findById(request.getBookingId())
+        Booking booking = bookingRepository.findByIdWithRelations(request.getBookingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
         if (booking.getPaymentStatus() == PaymentStatus.SUCCESS) {
@@ -94,7 +94,7 @@ public class PaymentService {
 
     @Transactional
     public Payment verifyAndCompletePayment(PaymentRequest request) {
-        Booking booking = bookingRepository.findById(request.getBookingId())
+        Booking booking = bookingRepository.findByIdWithRelations(request.getBookingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
         // In a real implementation, verify Razorpay signature here
@@ -201,6 +201,6 @@ public class PaymentService {
     }
 
     public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+        return paymentRepository.findAllWithRelations();
     }
 }

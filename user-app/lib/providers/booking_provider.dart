@@ -431,7 +431,7 @@ class BookingProvider with ChangeNotifier {
       // Open Razorpay checkout with callbacks
       _paymentService.openCheckout(
         amount: _createdBooking!.totalAmount,
-        orderId: _paymentOrder!.transactionId ?? '',
+        orderId: _paymentOrder!.razorpayOrderId ?? '',
         name: userName,
         email: userEmail,
         phone: '', // Phone not available in AuthResponse

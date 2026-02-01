@@ -72,7 +72,7 @@ class PaymentServiceWeb {
 
       // Create options object
       final options = js_util.jsify({
-        'key': 'rzp_test_1DP5mmOlF5G5ag',
+        'key': 'rzp_test_SAnYf1YwWqJZD1',
         'amount': (amount * 100).toInt(), // Amount in paise
         'currency': 'INR',
         'name': 'Homeprime99',

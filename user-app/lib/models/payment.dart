@@ -6,6 +6,7 @@ class Payment {
   final double amount;
   final String paymentMethod;
   final String? transactionId;
+  final String? razorpayOrderId;
   final PaymentStatus status;
   final String createdAt;
 
@@ -15,6 +16,7 @@ class Payment {
     required this.amount,
     required this.paymentMethod,
     this.transactionId,
+    this.razorpayOrderId,
     required this.status,
     required this.createdAt,
   });
@@ -26,6 +28,7 @@ class Payment {
       amount: (json['amount'] as num).toDouble(),
       paymentMethod: json['paymentMethod'],
       transactionId: json['transactionId'],
+      razorpayOrderId: json['razorpayOrderId'],
       status: PaymentStatus.fromString(json['status']),
       createdAt: json['createdAt'],
     );
@@ -38,6 +41,7 @@ class Payment {
       'amount': amount,
       'paymentMethod': paymentMethod,
       'transactionId': transactionId,
+      'razorpayOrderId': razorpayOrderId,
       'status': status.name,
       'createdAt': createdAt,
     };

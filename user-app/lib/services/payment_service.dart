@@ -64,7 +64,7 @@ class PaymentService {
     required String description,
   }) {
     var options = {
-      'key': 'rzp_test_1DP5mmOlF5G5ag', // TODO: Move to config/env
+      'key': 'rzp_test_SAnYf1YwWqJZD1', // TODO: Move to config/env
       'amount': (amount * 100).toInt(), // Amount in paise
       'name': 'Homeprime99',
       'description': description,

@@ -4,32 +4,26 @@ import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Test;
 
-/**
- * Standalone test to verify Razorpay credentials
- * Run this to test if your API keys work independently
- */
-public class RazorpayCredentialsTest {
+public class RazorpayApiTest {
 
-    public static void main(String[] args) {
-        // Replace these with your actual credentials
-        String keyId = "rzp_test_1DP5mmOlF5G5ag";
-        String keySecret = "V5t3iIo0HuWte2UP1O4bnepJ";
+    @Test
+    public void testRazorpayCredentials() {
+        String keyId = "rzp_test_SAnYf1YwWqJZD1";
+        String keySecret = "aC1OPW6x3tX0r0sYbTQ3RbLr";
 
         System.out.println("Testing Razorpay Credentials...");
         System.out.println("Key ID: " + keyId);
         System.out.println("Key Secret Length: " + keySecret.length());
-        System.out.println("Key Secret (first 4 chars): " + keySecret.substring(0, 4) + "...");
         System.out.println();
 
         try {
-            // Create Razorpay client
             RazorpayClient razorpayClient = new RazorpayClient(keyId, keySecret);
             System.out.println("✓ RazorpayClient created successfully");
 
-            // Create a test order
             JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", 100); // 1 INR in paise
+            orderRequest.put("amount", 100);
             orderRequest.put("currency", "INR");
             orderRequest.put("receipt", "TEST_" + System.currentTimeMillis());
 
@@ -52,9 +46,7 @@ public class RazorpayCredentialsTest {
             System.err.println("3. API keys revoked/expired");
             System.err.println("4. Network connectivity issues");
             e.printStackTrace();
-        } catch (Exception e) {
-            System.err.println("\n✗✗✗ UNEXPECTED ERROR ✗✗✗");
-            e.printStackTrace();
+            throw new RuntimeException("Razorpay test failed", e);
         }
     }
 }
